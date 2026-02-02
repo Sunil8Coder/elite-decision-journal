@@ -1,4 +1,4 @@
-import { Decision } from '@/types/decision';
+import { Decision, categories } from '@/types/decision';
 import { EmotionBadge } from './EmotionBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ChevronRight, CheckCircle2 } from 'lucide-react';
@@ -11,6 +11,7 @@ interface DecisionCardProps {
 
 export function DecisionCard({ decision, onClick }: DecisionCardProps) {
   const isReviewed = !!decision.reviewedAt;
+  const categoryInfo = categories.find((c) => c.value === decision.category);
 
   return (
     <button
@@ -23,8 +24,13 @@ export function DecisionCard({ decision, onClick }: DecisionCardProps) {
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <EmotionBadge emotion={decision.emotion} />
+            {categoryInfo && (
+              <span className={cn('inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border', categoryInfo.color)}>
+                {categoryInfo.icon} {categoryInfo.label}
+              </span>
+            )}
             {isReviewed && (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
                 <CheckCircle2 className="h-3 w-3" />

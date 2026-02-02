@@ -1,4 +1,4 @@
-import { Decision } from '@/types/decision';
+import { Decision, categories } from '@/types/decision';
 import { EmotionBadge } from './EmotionBadge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ArrowLeft, CheckCircle2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface DecisionDetailProps {
   decision: Decision;
@@ -22,6 +23,7 @@ export function DecisionDetail({
 }: DecisionDetailProps) {
   const [actualOutcome, setActualOutcome] = useState(decision.actualOutcome || '');
   const [isReviewing, setIsReviewing] = useState(false);
+  const categoryInfo = categories.find((c) => c.value === decision.category);
 
   const handleReview = () => {
     onUpdate(decision.id, {
@@ -43,8 +45,13 @@ export function DecisionDetail({
 
       <div className="space-y-6">
         <div>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
             <EmotionBadge emotion={decision.emotion} />
+            {categoryInfo && (
+              <span className={cn('inline-flex items-center gap-1 text-sm px-2.5 py-1 rounded-full border', categoryInfo.color)}>
+                {categoryInfo.icon} {categoryInfo.label}
+              </span>
+            )}
             {decision.reviewedAt && (
               <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
                 <CheckCircle2 className="h-4 w-4" />
