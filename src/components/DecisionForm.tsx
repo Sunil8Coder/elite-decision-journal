@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Emotion } from '@/types/decision';
+import { Emotion, Category, categories } from '@/types/decision';
 import { cn } from '@/lib/utils';
 import { Sparkles, X } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface DecisionFormProps {
     decision: string;
     reasoning: string;
     emotion: Emotion;
+    category: Category;
     expectedOutcome: string;
   }) => void;
   onCancel: () => void;
@@ -28,16 +29,18 @@ export function DecisionForm({ onSubmit, onCancel }: DecisionFormProps) {
   const [decision, setDecision] = useState('');
   const [reasoning, setReasoning] = useState('');
   const [emotion, setEmotion] = useState<Emotion>('neutral');
+  const [category, setCategory] = useState<Category>('career');
   const [expectedOutcome, setExpectedOutcome] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!decision.trim() || !reasoning.trim() || !expectedOutcome.trim()) return;
     
-    onSubmit({ decision, reasoning, emotion, expectedOutcome });
+    onSubmit({ decision, reasoning, emotion, category, expectedOutcome });
     setDecision('');
     setReasoning('');
     setEmotion('neutral');
+    setCategory('career');
     setExpectedOutcome('');
   };
 
@@ -105,6 +108,30 @@ export function DecisionForm({ onSubmit, onCancel }: DecisionFormProps) {
             >
               <span className="mr-2">{e.icon}</span>
               {e.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-foreground">
+          What area of life?
+        </Label>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => setCategory(c.value)}
+              className={cn(
+                'px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200',
+                category === c.value
+                  ? c.color
+                  : 'bg-secondary border-border text-muted-foreground hover:border-muted-foreground'
+              )}
+            >
+              <span className="mr-2">{c.icon}</span>
+              {c.label}
             </button>
           ))}
         </div>
