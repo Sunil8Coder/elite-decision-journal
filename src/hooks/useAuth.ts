@@ -1,13 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, AuthState } from '@/types/auth';
+import { api } from '@/lib/api';
 
-const USERS_KEY = 'decision-journal-users';
-const SESSION_KEY = 'decision-journal-session';
-
-interface StoredUser extends Omit<User, 'createdAt'> {
-  password: string;
-  createdAt: string;
-}
+const TOKEN_KEY = 'decision-journal-token';
+const USER_KEY = 'decision-journal-user';
 
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
@@ -18,11 +14,13 @@ export function useAuth() {
 
   useEffect(() => {
     // Check for existing session
-    const sessionData = localStorage.getItem(SESSION_KEY);
-    if (sessionData) {
-      const user = JSON.parse(sessionData);
+    const token = localStorage.getItem(TOKEN_KEY);
+    const userData = localStorage.getItem(USER_KEY);
+    
+    if (token && userData) {
+      const user = JSON.parse(userData);
       setAuthState({
-        user: { ...user, createdAt: new Date(user.createdAt) },
+        user: { ...user, createdAt: new Date(user.createdAt || Date.now()) },
         isAuthenticated: true,
         isLoading: false,
       });
@@ -31,71 +29,51 @@ export function useAuth() {
     }
   }, []);
 
-  const getUsers = (): StoredUser[] => {
-    const stored = localStorage.getItem(USERS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  };
-
-  const saveUsers = (users: StoredUser[]) => {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  };
-
   const signUp = useCallback(async (email: string, password: string, name: string): Promise<{ error?: string }> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const { data, error } = await api.register(name, email, password);
 
-    const users = getUsers();
-    
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { error: 'An account with this email already exists' };
+    if (error || !data) {
+      return { error: error || 'Registration failed' };
     }
 
-    const newUser: StoredUser = {
-      id: crypto.randomUUID(),
-      email: email.toLowerCase(),
-      name,
-      password, // In real app, this would be hashed
-      createdAt: new Date().toISOString(),
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+      createdAt: new Date(),
     };
 
-    saveUsers([...users, newUser]);
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    const user: User = { ...userWithoutPassword, createdAt: new Date(newUser.createdAt) };
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
     
-    localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
     setAuthState({ user, isAuthenticated: true, isLoading: false });
-
     return {};
   }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ error?: string }> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const { data, error } = await api.login(email, password);
 
-    const users = getUsers();
-    const user = users.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-
-    if (!user) {
-      return { error: 'Invalid email or password' };
+    if (error || !data) {
+      return { error: error || 'Login failed' };
     }
 
-    const { password: _, ...userWithoutPassword } = user;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(userWithoutPassword));
-    
-    setAuthState({
-      user: { ...userWithoutPassword, createdAt: new Date(user.createdAt) },
-      isAuthenticated: true,
-      isLoading: false,
-    });
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+      createdAt: new Date(),
+    };
 
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    
+    setAuthState({ user, isAuthenticated: true, isLoading: false });
     return {};
   }, []);
 
   const signOut = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setAuthState({ user: null, isAuthenticated: false, isLoading: false });
   }, []);
 
