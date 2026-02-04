@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const signInSchema = z.object({
@@ -36,7 +36,7 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp } = useAuthContext();
   const { toast } = useToast();
   const navigate = useNavigate();
 
