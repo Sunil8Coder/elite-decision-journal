@@ -5,6 +5,19 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+export interface ApiDecision {
+  id: string;
+  decision: string;
+  reasoning: string;
+  emotion: string;
+  category: string;
+  expectedOutcome: string;
+  createdAt: string;
+  reviewedAt?: string;
+  actualOutcome?: string;
+  biasDetected?: string[];
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -93,4 +106,36 @@ export const api = {
 
   deleteRole: (id: string) =>
     request<void>(`/roles/${id}`, { method: 'DELETE' }),
+
+  // Decisions
+  createDecision: (userId: string, data: {
+    decision: string;
+    reasoning: string;
+    emotion: string;
+    category: string;
+    expectedOutcome: string;
+  }) =>
+    request<ApiDecision>(
+      `/users/${userId}/decision`,
+      { method: 'POST', body: JSON.stringify(data) }
+    ),
+
+  listDecisions: (userId: string) =>
+    request<ApiDecision[]>(`/users/${userId}/decision`),
+
+  getDecision: (userId: string, decisionId: string) =>
+    request<ApiDecision>(`/users/${userId}/decision/${decisionId}`),
+
+  reviewDecision: (userId: string, decisionId: string, data: {
+    actualOutcome?: string;
+    biasDetected?: string[];
+    reviewedAt?: string;
+  }) =>
+    request<ApiDecision>(
+      `/users/${userId}/decision/${decisionId}/review`,
+      { method: 'PATCH', body: JSON.stringify(data) }
+    ),
+
+  deleteDecision: (userId: string, decisionId: string) =>
+    request<void>(`/users/${userId}/decision/${decisionId}`, { method: 'DELETE' }),
 };
