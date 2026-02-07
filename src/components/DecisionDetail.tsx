@@ -63,8 +63,9 @@ export function DecisionDetail({
             {decision.decision}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Logged {format(new Date(decision.createdAt), 'MMMM d, yyyy')} at{' '}
-            {format(new Date(decision.createdAt), 'h:mm a')}
+            {decision.createdAt instanceof Date && !isNaN(decision.createdAt.getTime())
+              ? `Logged ${format(decision.createdAt, 'MMMM d, yyyy')} at ${format(decision.createdAt, 'h:mm a')}`
+              : 'Date unknown'}
           </p>
         </div>
 
