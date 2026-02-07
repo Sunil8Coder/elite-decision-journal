@@ -4,6 +4,12 @@ import { api, ApiDecision } from '@/lib/api';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+function parseDate(dateValue: string | undefined | null): Date {
+  if (!dateValue) return new Date();
+  const parsed = new Date(dateValue);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 function mapApiToDecision(apiDecision: ApiDecision): Decision {
   return {
     id: apiDecision.id,
@@ -12,8 +18,8 @@ function mapApiToDecision(apiDecision: ApiDecision): Decision {
     emotion: apiDecision.emotion as Emotion,
     category: apiDecision.category as Category,
     expectedOutcome: apiDecision.expectedOutcome,
-    createdAt: new Date(apiDecision.createdAt),
-    reviewedAt: apiDecision.reviewedAt ? new Date(apiDecision.reviewedAt) : undefined,
+    createdAt: parseDate(apiDecision.createdAt),
+    reviewedAt: apiDecision.reviewedAt ? parseDate(apiDecision.reviewedAt) : undefined,
     actualOutcome: apiDecision.actualOutcome,
     biasDetected: apiDecision.biasDetected,
   };

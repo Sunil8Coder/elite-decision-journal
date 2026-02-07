@@ -45,7 +45,9 @@ export function DecisionCard({ decision, onClick }: DecisionCardProps) {
             {decision.reasoning}
           </p>
           <p className="text-xs text-muted-foreground mt-3">
-            {formatDistanceToNow(new Date(decision.createdAt), { addSuffix: true })}
+            {decision.createdAt instanceof Date && !isNaN(decision.createdAt.getTime())
+              ? formatDistanceToNow(decision.createdAt, { addSuffix: true })
+              : 'Unknown date'}
           </p>
         </div>
         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 mt-1" />
