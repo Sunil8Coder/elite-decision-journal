@@ -30,7 +30,10 @@ interface EmotionBadgeProps {
 }
 
 export function EmotionBadge({ emotion, className }: EmotionBadgeProps) {
-  const config = emotionConfig[emotion];
+  const config = emotionConfig[emotion] || {
+    label: emotion || 'Unknown',
+    className: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  };
   
   return (
     <span
