@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { User } from '@/types/auth';
+import { User, AppRole } from '@/types/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +9,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => void;
+  hasRole: (role: AppRole) => boolean;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

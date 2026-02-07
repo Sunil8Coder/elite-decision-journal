@@ -92,6 +92,9 @@ export const api = {
   listRoles: () =>
     request<{ id: string; name: string }[]>('/roles'),
 
+  getUserRoles: (userId: string) =>
+    request<{ roles: string[] }>(`/users/${userId}/roles`),
+
   createRole: (name: string) =>
     request<{ id: string; name: string }>(
       '/roles',

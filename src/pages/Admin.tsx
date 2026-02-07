@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,26 +30,29 @@ export default function Admin() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    const { data, error } = await api.listUsers();
-    setIsLoading(false);
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: error,
-        variant: 'destructive',
-      });
-    } else if (data) {
-      setUsers(data);
-    }
-  };
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      const { data, error } = await api.listUsers();
+      setIsLoading(false);
+
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error,
+          variant: 'destructive',
+        });
+      } else if (data) {
+        setUsers(data);
+      }
+    };
+
+    if (isAdmin()) {
+      fetchUsers();
+    }
+  }, [isAdmin, toast]);
 
   const handleDeleteUser = async (userId: string) => {
     const { error } = await api.deleteUser(userId);
@@ -66,6 +71,11 @@ export default function Admin() {
       setUsers((prev) => prev.filter((u) => u.id !== userId));
     }
   };
+
+  // Redirect non-admin users after all hooks
+  if (!isAdmin()) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
