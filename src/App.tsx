@@ -8,7 +8,12 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import Diary from "./pages/Diary";
+import Notes from "./pages/Notes";
+import Books from "./pages/Books";
+import Planner from "./pages/Planner";
 import NotFound from "./pages/NotFound";
+import { BottomNav } from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
@@ -49,16 +54,23 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
+  const { isAuthenticated, isLoading } = useAuthContext();
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+        <Route path="/diary" element={<ProtectedRoute><Diary /></ProtectedRoute>} />
+        <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
+        <Route path="/books" element={<ProtectedRoute><Books /></ProtectedRoute>} />
+        <Route path="/planner" element={<ProtectedRoute><Planner /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      {isAuthenticated && !isLoading && <BottomNav />}
     </BrowserRouter>
   );
 }
