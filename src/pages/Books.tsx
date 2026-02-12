@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Book } from '@/types/features';
+import { useBooksApi } from '@/hooks/useFeatureApi';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,46 +7,53 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, ArrowLeft, Trash2, BookMarked, Star } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, BookMarked, Star, Loader2 } from 'lucide-react';
+import { ApiBook } from '@/lib/api';
 
-const statusColors: Record<Book['status'], string> = {
+const statusColors: Record<string, string> = {
   reading: 'bg-primary/20 text-primary',
   completed: 'bg-green-500/20 text-green-400',
   wishlist: 'bg-secondary text-secondary-foreground',
 };
 
 const Books = () => {
-  const [books, setBooks] = useLocalStorage<Book[]>('books-entries', []);
+  const { items: books, loading, create, remove } = useBooksApi();
   const [view, setView] = useState<'list' | 'form'>('list');
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [status, setStatus] = useState<Book['status']>('wishlist');
+  const [status, setStatus] = useState<string>('wishlist');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(0);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !author.trim()) return;
-    const book: Book = {
-      id: crypto.randomUUID(),
+    const success = await create({
       title: title.trim(),
       author: author.trim(),
       status,
       notes: notes.trim() || undefined,
       rating: rating || undefined,
-      createdAt: new Date().toISOString(),
-    };
-    setBooks((prev) => [book, ...prev]);
-    setTitle('');
-    setAuthor('');
-    setStatus('wishlist');
-    setNotes('');
-    setRating(0);
-    setView('list');
+    });
+    if (success) {
+      setTitle('');
+      setAuthor('');
+      setStatus('wishlist');
+      setNotes('');
+      setRating(0);
+      setView('list');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setBooks((prev) => prev.filter((b) => b.id !== id));
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <Header onAddDecision={() => {}} showAddButton={false} />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -61,7 +67,7 @@ const Books = () => {
             <h2 className="font-display text-xl font-semibold">Add Book</h2>
             <Input placeholder="Book title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Input placeholder="Author" value={author} onChange={(e) => setAuthor(e.target.value)} />
-            <Select value={status} onValueChange={(v) => setStatus(v as Book['status'])}>
+            <Select value={status} onValueChange={setStatus}>
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="wishlist">Wishlist</SelectItem>
@@ -107,7 +113,7 @@ const Books = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className={statusColors[book.status]}>{book.status}</Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(book.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(book.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

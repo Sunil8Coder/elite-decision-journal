@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { PlannerTask } from '@/types/features';
+import { usePlannerApi } from '@/hooks/useFeatureApi';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,52 +8,53 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, ArrowLeft, Trash2, CalendarCheck } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, CalendarCheck, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
-const priorityColors: Record<PlannerTask['priority'], string> = {
+const priorityColors: Record<string, string> = {
   low: 'bg-secondary text-secondary-foreground',
   medium: 'bg-primary/20 text-primary',
   high: 'bg-destructive/20 text-destructive',
 };
 
 const Planner = () => {
-  const [tasks, setTasks] = useLocalStorage<PlannerTask[]>('planner-tasks', []);
+  const { items: tasks, loading, create, remove, toggleComplete } = usePlannerApi();
   const [view, setView] = useState<'list' | 'form'>('list');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [priority, setPriority] = useState<PlannerTask['priority']>('medium');
+  const [priority, setPriority] = useState<string>('medium');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim()) return;
-    const task: PlannerTask = {
-      id: crypto.randomUUID(),
+    const success = await create({
       title: title.trim(),
       description: description.trim() || undefined,
       dueDate: dueDate || undefined,
       priority,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
-    setTasks((prev) => [task, ...prev]);
-    setTitle('');
-    setDescription('');
-    setDueDate('');
-    setPriority('medium');
-    setView('list');
-  };
-
-  const toggleComplete = (id: string) => {
-    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, completed: !t.completed } : t));
-  };
-
-  const handleDelete = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    });
+    if (success) {
+      setTitle('');
+      setDescription('');
+      setDueDate('');
+      setPriority('medium');
+      setView('list');
+    }
   };
 
   const pending = tasks.filter((t) => !t.completed);
   const completed = tasks.filter((t) => t.completed);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <Header onAddDecision={() => {}} showAddButton={false} />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -69,7 +69,7 @@ const Planner = () => {
             <Input placeholder="Task title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea placeholder="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
             <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-            <Select value={priority} onValueChange={(v) => setPriority(v as PlannerTask['priority'])}>
+            <Select value={priority} onValueChange={setPriority}>
               <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">Low</SelectItem>
@@ -101,13 +101,13 @@ const Planner = () => {
                   <Card key={task.id} className="bg-card border-border">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-3">
-                        <Checkbox checked={task.completed} onCheckedChange={() => toggleComplete(task.id)} />
+                        <Checkbox checked={task.completed} onCheckedChange={() => toggleComplete(task.id, task.completed)} />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-base font-semibold">{task.title}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge className={priorityColors[task.priority]}>{task.priority}</Badge>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(task.id)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(task.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -132,9 +132,9 @@ const Planner = () => {
                   <Card key={task.id} className="bg-card border-border opacity-60">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-3">
-                        <Checkbox checked={task.completed} onCheckedChange={() => toggleComplete(task.id)} />
+                        <Checkbox checked={task.completed} onCheckedChange={() => toggleComplete(task.id, task.completed)} />
                         <CardTitle className="text-base font-semibold line-through">{task.title}</CardTitle>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto text-muted-foreground hover:text-destructive" onClick={() => handleDelete(task.id)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto text-muted-foreground hover:text-destructive" onClick={() => remove(task.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
