@@ -71,7 +71,7 @@ export default function Auth() {
           toast({ title: 'Sign in failed', description: error, variant: 'destructive' });
         } else {
           toast({ title: 'Welcome back!', description: 'Successfully signed in' });
-          navigate('/');
+          navigate('/dashboard');
         }
       } else {
         const result = signUpSchema.safeParse({ name, email, password, confirmPassword });
@@ -90,7 +90,7 @@ export default function Auth() {
           toast({ title: 'Sign up failed', description: error, variant: 'destructive' });
         } else {
           toast({ title: 'Account created!', description: 'Welcome to Decision Journal' });
-          navigate('/');
+          navigate('/dashboard');
         }
       }
     } finally {
