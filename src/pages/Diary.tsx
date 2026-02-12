@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { DiaryEntry } from '@/types/features';
+import { useDiaryApi } from '@/hooks/useFeatureApi';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, ArrowLeft, Trash2, BookOpen } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, BookOpen, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Diary = () => {
-  const [entries, setEntries] = useLocalStorage<DiaryEntry[]>('diary-entries', []);
+  const { items: entries, loading, create, remove } = useDiaryApi();
   const [view, setView] = useState<'list' | 'form'>('list');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -18,26 +17,32 @@ const Diary = () => {
 
   const moods = ['😊', '😐', '😔', '😤', '🤔', '😴', '🥳'];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) return;
-    const entry: DiaryEntry = {
-      id: crypto.randomUUID(),
+    const success = await create({
       title: title.trim(),
       content: content.trim(),
-      mood,
+      mood: mood || undefined,
       date: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-    };
-    setEntries((prev) => [entry, ...prev]);
-    setTitle('');
-    setContent('');
-    setMood('');
-    setView('list');
+    });
+    if (success) {
+      setTitle('');
+      setContent('');
+      setMood('');
+      setView('list');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id));
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <Header onAddDecision={() => {}} showAddButton={false} />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -86,7 +91,7 @@ const Diary = () => {
                       {entry.mood && <span className="mr-2">{entry.mood}</span>}
                       {entry.title}
                     </CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(entry.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(entry.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

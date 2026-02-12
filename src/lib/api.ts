@@ -5,6 +5,44 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+export interface ApiDiaryEntry {
+  id: string;
+  title: string;
+  content: string;
+  mood?: string;
+  date: string;
+  createdAt: string;
+}
+
+export interface ApiNote {
+  id: string;
+  title: string;
+  content: string;
+  tag?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiBook {
+  id: string;
+  title: string;
+  author: string;
+  status: 'reading' | 'completed' | 'wishlist';
+  notes?: string;
+  rating?: number;
+  createdAt: string;
+}
+
+export interface ApiPlannerTask {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+  createdAt: string;
+}
+
 export interface ApiDecision {
   id: string;
   decision: string;
@@ -141,4 +179,47 @@ export const api = {
 
   deleteDecision: (userId: string, decisionId: string) =>
     request<void>(`/users/${userId}/decision/${decisionId}`, { method: 'DELETE' }),
+
+  // Diary
+  listDiary: (userId: string) =>
+    request<ApiDiaryEntry[]>(`/users/${userId}/diary`),
+
+  createDiary: (userId: string, data: { title: string; content: string; mood?: string; date: string }) =>
+    request<ApiDiaryEntry>(`/users/${userId}/diary`, { method: 'POST', body: JSON.stringify(data) }),
+
+  deleteDiary: (userId: string, id: string) =>
+    request<void>(`/users/${userId}/diary/${id}`, { method: 'DELETE' }),
+
+  // Notes
+  listNotes: (userId: string) =>
+    request<ApiNote[]>(`/users/${userId}/notes`),
+
+  createNote: (userId: string, data: { title: string; content: string; tag?: string }) =>
+    request<ApiNote>(`/users/${userId}/notes`, { method: 'POST', body: JSON.stringify(data) }),
+
+  deleteNote: (userId: string, id: string) =>
+    request<void>(`/users/${userId}/notes/${id}`, { method: 'DELETE' }),
+
+  // Books
+  listBooks: (userId: string) =>
+    request<ApiBook[]>(`/users/${userId}/books`),
+
+  createBook: (userId: string, data: { title: string; author: string; status: string; notes?: string; rating?: number }) =>
+    request<ApiBook>(`/users/${userId}/books`, { method: 'POST', body: JSON.stringify(data) }),
+
+  deleteBook: (userId: string, id: string) =>
+    request<void>(`/users/${userId}/books/${id}`, { method: 'DELETE' }),
+
+  // Planner
+  listPlanner: (userId: string) =>
+    request<ApiPlannerTask[]>(`/users/${userId}/planner`),
+
+  createPlanner: (userId: string, data: { title: string; description?: string; dueDate?: string; priority: string }) =>
+    request<ApiPlannerTask>(`/users/${userId}/planner`, { method: 'POST', body: JSON.stringify(data) }),
+
+  updatePlanner: (userId: string, id: string, data: { completed?: boolean }) =>
+    request<ApiPlannerTask>(`/users/${userId}/planner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deletePlanner: (userId: string, id: string) =>
+    request<void>(`/users/${userId}/planner/${id}`, { method: 'DELETE' }),
 };

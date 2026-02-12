@@ -1,42 +1,46 @@
 import { useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Note } from '@/types/features';
+import { useNotesApi } from '@/hooks/useFeatureApi';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowLeft, Trash2, StickyNote } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, StickyNote, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Notes = () => {
-  const [notes, setNotes] = useLocalStorage<Note[]>('notes-entries', []);
+  const { items: notes, loading, create, remove } = useNotesApi();
   const [view, setView] = useState<'list' | 'form'>('list');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tag, setTag] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) return;
-    const note: Note = {
-      id: crypto.randomUUID(),
+    const success = await create({
       title: title.trim(),
       content: content.trim(),
       tag: tag.trim() || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setNotes((prev) => [note, ...prev]);
-    setTitle('');
-    setContent('');
-    setTag('');
-    setView('list');
+    });
+    if (success) {
+      setTitle('');
+      setContent('');
+      setTag('');
+      setView('list');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <Header onAddDecision={() => {}} showAddButton={false} />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -76,7 +80,7 @@ const Notes = () => {
                       <CardTitle className="text-base font-semibold">{note.title}</CardTitle>
                       {note.tag && <Badge variant="secondary" className="text-xs">{note.tag}</Badge>}
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(note.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(note.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
