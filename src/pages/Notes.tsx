@@ -84,7 +84,11 @@ const Notes = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{format(new Date(note.createdAt), 'MMM d, yyyy')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {note.createdAt && !isNaN(new Date(note.createdAt).getTime())
+                      ? format(new Date(note.createdAt), 'MMM d, yyyy')
+                      : 'Just now'}
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground line-clamp-3">{note.content}</p>
