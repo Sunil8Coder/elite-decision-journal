@@ -112,7 +112,7 @@ const Planner = () => {
                               </Button>
                             </div>
                           </div>
-                          {task.dueDate && <p className="text-xs text-muted-foreground">Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}</p>}
+                          {task.dueDate && !isNaN(new Date(task.dueDate).getTime()) && <p className="text-xs text-muted-foreground">Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}</p>}
                         </div>
                       </div>
                     </CardHeader>
