@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Brain, Menu, X } from 'lucide-react';
+import { Brain, Menu, X, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 const navLinks = [
@@ -14,7 +14,7 @@ const navLinks = [
 ];
 
 export function LandingHeader() {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, signOut } = useAuthContext();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -43,9 +43,15 @@ export function LandingHeader() {
 
         <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
-            <Button variant="accent" size="sm" asChild>
-              <Link to="/">Dashboard</Link>
-            </Button>
+            <>
+              <Button variant="accent" size="sm" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -79,9 +85,15 @@ export function LandingHeader() {
           ))}
           <div className="pt-2 border-t border-border">
             {isAuthenticated ? (
-              <Button variant="accent" size="sm" className="w-full" asChild>
-                <Link to="/">Dashboard</Link>
-              </Button>
+              <div className="space-y-2">
+                <Button variant="accent" size="sm" className="w-full" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full text-destructive hover:text-destructive" onClick={signOut}>
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
             ) : (
               <Button variant="accent" size="sm" className="w-full" asChild>
                 <Link to="/auth">Get Started</Link>
