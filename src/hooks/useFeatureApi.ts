@@ -31,16 +31,13 @@ function useFeatureCrud<T extends { id: string }>(
 
   const create = useCallback(async (data: any) => {
     if (!user) return;
-    const { data: created, error } = await createFn(user.id, data);
+    const { error } = await createFn(user.id, data);
     if (error) {
       toast.error(`Failed to create ${label}`);
       return false;
     }
-    if (created) {
-      setItems((prev) => [created, ...prev]);
-    } else {
-      await fetchItems();
-    }
+    toast.success(`${label} created successfully`);
+    await fetchItems();
     return true;
   }, [user, createFn, label, fetchItems]);
 
