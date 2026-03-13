@@ -226,7 +226,7 @@ export const api = {
   createPlanner: (userId: string, data: { title: string; description?: string; dueDate?: string; priority: string }) =>
     request<ApiPlannerTask>(`/users/${userId}/planner`, { method: 'POST', body: JSON.stringify(data) }),
 
-  updatePlanner: (userId: string, id: string, data: { completed?: boolean }) =>
+  updatePlanner: (userId: string, id: string, data: { title?: string; description?: string; dueDate?: string; priority?: string; completed?: boolean }) =>
     request<ApiPlannerTask>(`/users/${userId}/planner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   deletePlanner: (userId: string, id: string) =>
