@@ -177,6 +177,18 @@ export const api = {
       { method: 'PATCH', body: JSON.stringify(data) }
     ),
 
+  updateDecision: (userId: string, decisionId: string, data: {
+    decision?: string;
+    reasoning?: string;
+    emotion?: string;
+    category?: string;
+    expectedOutcome?: string;
+  }) =>
+    request<ApiDecision>(
+      `/users/${userId}/decision/${decisionId}`,
+      { method: 'PUT', body: JSON.stringify(data) }
+    ),
+
   deleteDecision: (userId: string, decisionId: string) =>
     request<void>(`/users/${userId}/decision/${decisionId}`, { method: 'DELETE' }),
 

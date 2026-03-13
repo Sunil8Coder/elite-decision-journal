@@ -105,6 +105,31 @@ export function useDecisions() {
           description: 'Decision reviewed successfully',
         });
       }
+    } else {
+      // Update core decision fields
+      const { data, error } = await api.updateDecision(user.id, id, {
+        decision: updates.decision,
+        reasoning: updates.reasoning,
+        emotion: updates.emotion,
+        category: updates.category,
+        expectedOutcome: updates.expectedOutcome,
+      });
+
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error,
+          variant: 'destructive',
+        });
+      } else if (data) {
+        setDecisions((prev) =>
+          prev.map((d) => (d.id === id ? mapApiToDecision(data) : d))
+        );
+        toast({
+          title: 'Success',
+          description: 'Decision updated successfully',
+        });
+      }
     }
   };
 
