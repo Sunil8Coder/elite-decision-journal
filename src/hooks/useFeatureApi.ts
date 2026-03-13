@@ -55,9 +55,24 @@ function useFeatureCrud<T extends { id: string }>(
 }
 
 export function useDiaryApi() {
-  return useFeatureCrud<ApiDiaryEntry>(
+  const crud = useFeatureCrud<ApiDiaryEntry>(
     api.listDiary, api.createDiary, api.deleteDiary, 'diary entry'
   );
+  const { user } = useAuthContext();
+
+  const update = useCallback(async (id: string, data: { title?: string; content?: string; mood?: string }) => {
+    if (!user) return false;
+    const { error } = await api.updateDiary(user.id, id, data);
+    if (error) {
+      toast.error('Failed to update diary entry');
+      return false;
+    }
+    toast.success('Diary entry updated');
+    await crud.refetch();
+    return true;
+  }, [user, crud.refetch]);
+
+  return { ...crud, update };
 }
 
 export function useNotesApi() {

@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, ArrowLeft, Trash2, BookOpen, Loader2 } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, BookOpen, Loader2, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Diary = () => {
-  const { items: entries, loading, create, remove } = useDiaryApi();
-  const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
+  const { items: entries, loading, create, remove, update } = useDiaryApi();
+  const [view, setView] = useState<'list' | 'form' | 'detail' | 'edit'>('list');
   const [selectedEntry, setSelectedEntry] = useState<typeof entries[0] | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -27,11 +27,37 @@ const Diary = () => {
       date: new Date().toISOString(),
     });
     if (success) {
-      setTitle('');
-      setContent('');
-      setMood('');
+      resetForm();
       setView('list');
     }
+  };
+
+  const handleEdit = (entry: typeof entries[0]) => {
+    setSelectedEntry(entry);
+    setTitle(entry.title);
+    setContent(entry.content);
+    setMood(entry.mood || '');
+    setView('edit');
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedEntry || !title.trim() || !content.trim()) return;
+    const success = await update(selectedEntry.id, {
+      title: title.trim(),
+      content: content.trim(),
+      mood: mood || undefined,
+    });
+    if (success) {
+      resetForm();
+      setView('list');
+      setSelectedEntry(null);
+    }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setMood('');
   };
 
   if (loading) {
@@ -52,16 +78,21 @@ const Diary = () => {
         {view === 'detail' && selectedEntry ? (
           <div className="space-y-4 animate-fade-in">
             <Button variant="ghost" size="sm" onClick={() => { setView('list'); setSelectedEntry(null); }}>
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back to Diary
             </Button>
             <div className="flex items-center justify-between">
               <h2 className="font-display text-xl font-semibold">
                 {selectedEntry.mood && <span className="mr-2">{selectedEntry.mood}</span>}
                 {selectedEntry.title}
               </h2>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { remove(selectedEntry.id); setView('list'); setSelectedEntry(null); }}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleEdit(selectedEntry)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { remove(selectedEntry.id); setView('list'); setSelectedEntry(null); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground">
               {selectedEntry.date && !isNaN(new Date(selectedEntry.date).getTime())
@@ -74,12 +105,14 @@ const Diary = () => {
               </CardContent>
             </Card>
           </div>
-        ) : view === 'form' ? (
+        ) : (view === 'form' || view === 'edit') ? (
           <div className="space-y-4 animate-fade-in">
-            <Button variant="ghost" size="sm" onClick={() => setView('list')}>
+            <Button variant="ghost" size="sm" onClick={() => { setView(view === 'edit' && selectedEntry ? 'detail' : 'list'); resetForm(); }}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
-            <h2 className="font-display text-xl font-semibold">New Diary Entry</h2>
+            <h2 className="font-display text-xl font-semibold">
+              {view === 'edit' ? 'Edit Diary Entry' : 'New Diary Entry'}
+            </h2>
             <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea placeholder="What happened today..." value={content} onChange={(e) => setContent(e.target.value)} rows={6} />
             <div>
@@ -92,8 +125,8 @@ const Diary = () => {
                 ))}
               </div>
             </div>
-            <Button variant="accent" onClick={handleSubmit} disabled={!title.trim() || !content.trim()}>
-              Save Entry
+            <Button variant="accent" onClick={view === 'edit' ? handleUpdate : handleSubmit} disabled={!title.trim() || !content.trim()}>
+              {view === 'edit' ? 'Update Entry' : 'Save Entry'}
             </Button>
           </div>
         ) : entries.length === 0 ? (
@@ -117,9 +150,14 @@ const Diary = () => {
                       {entry.mood && <span className="mr-2">{entry.mood}</span>}
                       {entry.title}
                     </CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); remove(entry.id); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={(e) => { e.stopPropagation(); handleEdit(entry); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); remove(entry.id); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {entry.date && !isNaN(new Date(entry.date).getTime())
