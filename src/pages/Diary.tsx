@@ -110,7 +110,7 @@ const Diary = () => {
         ) : (
           <div className="space-y-3 animate-fade-in">
             {entries.map((entry) => (
-              <Card key={entry.id} className="bg-card border-border">
+              <Card key={entry.id} className="bg-card border-border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setSelectedEntry(entry); setView('detail'); }}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold">
