@@ -213,6 +213,9 @@ export const api = {
   createBook: (userId: string, data: { title: string; author: string; status: string; notes?: string; rating?: number }) =>
     request<ApiBook>(`/users/${userId}/books`, { method: 'POST', body: JSON.stringify(data) }),
 
+  updateBook: (userId: string, id: string, data: { title?: string; author?: string; status?: string; notes?: string; rating?: number }) =>
+    request<ApiBook>(`/users/${userId}/books/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   deleteBook: (userId: string, id: string) =>
     request<void>(`/users/${userId}/books/${id}`, { method: 'DELETE' }),
 
