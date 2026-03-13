@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
-import { ArrowLeft, CheckCircle2, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Trash2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,7 @@ interface DecisionDetailProps {
   onBack: () => void;
   onUpdate: (id: string, updates: Partial<Decision>) => void;
   onDelete: (id: string) => void;
+  onEdit: (decision: Decision) => void;
 }
 
 export function DecisionDetail({
@@ -20,6 +21,7 @@ export function DecisionDetail({
   onBack,
   onUpdate,
   onDelete,
+  onEdit,
 }: DecisionDetailProps) {
   const [actualOutcome, setActualOutcome] = useState(decision.actualOutcome || '');
   const [isReviewing, setIsReviewing] = useState(false);
@@ -59,10 +61,20 @@ export function DecisionDetail({
               </span>
             )}
           </div>
-          <h1 className="text-2xl font-display font-semibold text-foreground mb-2">
-            {decision.decision}
-          </h1>
-          <p className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-display font-semibold text-foreground">
+              {decision.decision}
+            </h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(decision)}
+              className="text-muted-foreground hover:text-primary"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
             {decision.createdAt instanceof Date && !isNaN(decision.createdAt.getTime())
               ? `Logged ${format(decision.createdAt, 'MMMM d, yyyy')} at ${format(decision.createdAt, 'h:mm a')}`
               : 'Date unknown'}
