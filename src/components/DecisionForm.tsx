@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Emotion, Category, categories } from '@/types/decision';
+import { Decision, Emotion, Category, categories } from '@/types/decision';
 import { cn } from '@/lib/utils';
 import { Sparkles, X } from 'lucide-react';
 
@@ -15,6 +15,7 @@ interface DecisionFormProps {
     expectedOutcome: string;
   }) => void;
   onCancel: () => void;
+  editingDecision?: Decision | null;
 }
 
 const emotions: { value: Emotion; label: string; icon: string }[] = [
@@ -25,32 +26,45 @@ const emotions: { value: Emotion; label: string; icon: string }[] = [
   { value: 'uncertain', label: 'Uncertain', icon: '🤔' },
 ];
 
-export function DecisionForm({ onSubmit, onCancel }: DecisionFormProps) {
-  const [decision, setDecision] = useState('');
-  const [reasoning, setReasoning] = useState('');
-  const [emotion, setEmotion] = useState<Emotion>('neutral');
-  const [category, setCategory] = useState<Category>('career');
-  const [expectedOutcome, setExpectedOutcome] = useState('');
+export function DecisionForm({ onSubmit, onCancel, editingDecision }: DecisionFormProps) {
+  const [decision, setDecision] = useState(editingDecision?.decision || '');
+  const [reasoning, setReasoning] = useState(editingDecision?.reasoning || '');
+  const [emotion, setEmotion] = useState<Emotion>(editingDecision?.emotion || 'neutral');
+  const [category, setCategory] = useState<Category>(editingDecision?.category || 'career');
+  const [expectedOutcome, setExpectedOutcome] = useState(editingDecision?.expectedOutcome || '');
+
+  useEffect(() => {
+    if (editingDecision) {
+      setDecision(editingDecision.decision);
+      setReasoning(editingDecision.reasoning);
+      setEmotion(editingDecision.emotion);
+      setCategory(editingDecision.category);
+      setExpectedOutcome(editingDecision.expectedOutcome);
+    }
+  }, [editingDecision]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!decision.trim() || !reasoning.trim() || !expectedOutcome.trim()) return;
     
     onSubmit({ decision, reasoning, emotion, category, expectedOutcome });
-    setDecision('');
-    setReasoning('');
-    setEmotion('neutral');
-    setCategory('career');
-    setExpectedOutcome('');
+    if (!editingDecision) {
+      setDecision('');
+      setReasoning('');
+      setEmotion('neutral');
+      setCategory('career');
+      setExpectedOutcome('');
+    }
   };
 
   const isValid = decision.trim() && reasoning.trim() && expectedOutcome.trim();
+  const isEditing = !!editingDecision;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-scale-in">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-display font-semibold text-foreground">
-          New Decision
+          {isEditing ? 'Edit Decision' : 'New Decision'}
         </h2>
         <Button
           type="button"
@@ -166,7 +180,7 @@ export function DecisionForm({ onSubmit, onCancel }: DecisionFormProps) {
           className="flex-1"
         >
           <Sparkles className="h-4 w-4" />
-          Log Decision
+          {isEditing ? 'Update Decision' : 'Log Decision'}
         </Button>
       </div>
     </form>

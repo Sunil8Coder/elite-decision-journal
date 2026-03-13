@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, ArrowLeft, Trash2, BookMarked, Star, Loader2 } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, BookMarked, Star, Loader2, Pencil } from 'lucide-react';
 import { ApiBook } from '@/lib/api';
 
 const statusColors: Record<string, string> = {
@@ -17,13 +17,22 @@ const statusColors: Record<string, string> = {
 };
 
 const Books = () => {
-  const { items: books, loading, create, remove } = useBooksApi();
-  const [view, setView] = useState<'list' | 'form'>('list');
+  const { items: books, loading, create, remove, update } = useBooksApi();
+  const [view, setView] = useState<'list' | 'form' | 'detail' | 'edit'>('list');
+  const [selectedBook, setSelectedBook] = useState<ApiBook | null>(null);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [status, setStatus] = useState<string>('wishlist');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(0);
+
+  const resetForm = () => {
+    setTitle('');
+    setAuthor('');
+    setStatus('wishlist');
+    setNotes('');
+    setRating(0);
+  };
 
   const handleSubmit = async () => {
     if (!title.trim() || !author.trim()) return;
@@ -35,12 +44,34 @@ const Books = () => {
       rating: rating || undefined,
     });
     if (success) {
-      setTitle('');
-      setAuthor('');
-      setStatus('wishlist');
-      setNotes('');
-      setRating(0);
+      resetForm();
       setView('list');
+    }
+  };
+
+  const handleEdit = (book: ApiBook) => {
+    setSelectedBook(book);
+    setTitle(book.title);
+    setAuthor(book.author);
+    setStatus(book.status);
+    setNotes(book.notes || '');
+    setRating(book.rating || 0);
+    setView('edit');
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedBook || !title.trim() || !author.trim()) return;
+    const success = await update(selectedBook.id, {
+      title: title.trim(),
+      author: author.trim(),
+      status,
+      notes: notes.trim() || undefined,
+      rating: rating || undefined,
+    });
+    if (success) {
+      resetForm();
+      setView('list');
+      setSelectedBook(null);
     }
   };
 
@@ -57,14 +88,51 @@ const Books = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <Header onAddDecision={() => setView('form')} showAddButton={view === 'list' && books.length > 0} />
+      <Header onAddDecision={() => setView('form')} showAddButton={(view === 'list' || view === 'detail') && books.length > 0} />
       <main className="container max-w-2xl mx-auto px-4 py-6">
-        {view === 'form' ? (
+        {view === 'detail' && selectedBook ? (
           <div className="space-y-4 animate-fade-in">
-            <Button variant="ghost" size="sm" onClick={() => setView('list')}>
+            <Button variant="ghost" size="sm" onClick={() => { setView('list'); setSelectedBook(null); }}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back to Books
+            </Button>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-xl font-semibold">{selectedBook.title}</h2>
+                <p className="text-sm text-muted-foreground">by {selectedBook.author}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={statusColors[selectedBook.status]}>{selectedBook.status}</Badge>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleEdit(selectedBook)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { remove(selectedBook.id); setView('list'); setSelectedBook(null); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            {selectedBook.rating && (
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className={`h-5 w-5 ${s <= selectedBook.rating! ? 'fill-primary text-primary' : 'text-muted'}`} />
+                ))}
+              </div>
+            )}
+            {selectedBook.notes && (
+              <Card className="bg-card border-border">
+                <CardContent className="pt-6">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedBook.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : (view === 'form' || view === 'edit') ? (
+          <div className="space-y-4 animate-fade-in">
+            <Button variant="ghost" size="sm" onClick={() => { setView(view === 'edit' && selectedBook ? 'detail' : 'list'); resetForm(); }}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
-            <h2 className="font-display text-xl font-semibold">Add Book</h2>
+            <h2 className="font-display text-xl font-semibold">
+              {view === 'edit' ? 'Edit Book' : 'Add Book'}
+            </h2>
             <Input placeholder="Book title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Input placeholder="Author" value={author} onChange={(e) => setAuthor(e.target.value)} />
             <Select value={status} onValueChange={setStatus}>
@@ -86,8 +154,8 @@ const Books = () => {
               </div>
             </div>
             <Textarea placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-            <Button variant="accent" onClick={handleSubmit} disabled={!title.trim() || !author.trim()}>
-              Save Book
+            <Button variant="accent" onClick={view === 'edit' ? handleUpdate : handleSubmit} disabled={!title.trim() || !author.trim()}>
+              {view === 'edit' ? 'Update Book' : 'Save Book'}
             </Button>
           </div>
         ) : books.length === 0 ? (
@@ -104,7 +172,7 @@ const Books = () => {
         ) : (
           <div className="space-y-3 animate-fade-in">
             {books.map((book) => (
-              <Card key={book.id} className="bg-card border-border">
+              <Card key={book.id} className="bg-card border-border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setSelectedBook(book); setView('detail'); }}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -113,7 +181,10 @@ const Books = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className={statusColors[book.status]}>{book.status}</Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(book.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={(e) => { e.stopPropagation(); handleEdit(book); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); remove(book.id); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
