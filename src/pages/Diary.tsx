@@ -47,9 +47,34 @@ const Diary = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <Header onAddDecision={() => setView('form')} showAddButton={view === 'list' && entries.length > 0} />
+      <Header onAddDecision={() => setView('form')} showAddButton={(view === 'list' || view === 'detail') && entries.length > 0} />
       <main className="container max-w-2xl mx-auto px-4 py-6">
-        {view === 'form' ? (
+        {view === 'detail' && selectedEntry ? (
+          <div className="space-y-4 animate-fade-in">
+            <Button variant="ghost" size="sm" onClick={() => { setView('list'); setSelectedEntry(null); }}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            </Button>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold">
+                {selectedEntry.mood && <span className="mr-2">{selectedEntry.mood}</span>}
+                {selectedEntry.title}
+              </h2>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { remove(selectedEntry.id); setView('list'); setSelectedEntry(null); }}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {selectedEntry.date && !isNaN(new Date(selectedEntry.date).getTime())
+                ? format(new Date(selectedEntry.date), 'EEEE, MMMM d, yyyy')
+                : 'Just now'}
+            </p>
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedEntry.content}</p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : view === 'form' ? (
           <div className="space-y-4 animate-fade-in">
             <Button variant="ghost" size="sm" onClick={() => setView('list')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
