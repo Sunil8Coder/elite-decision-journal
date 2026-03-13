@@ -76,15 +76,45 @@ export function useDiaryApi() {
 }
 
 export function useNotesApi() {
-  return useFeatureCrud<ApiNote>(
+  const crud = useFeatureCrud<ApiNote>(
     api.listNotes, api.createNote, api.deleteNote, 'note'
   );
+  const { user } = useAuthContext();
+
+  const update = useCallback(async (id: string, data: { title?: string; content?: string; tag?: string }) => {
+    if (!user) return false;
+    const { error } = await api.updateNote(user.id, id, data);
+    if (error) {
+      toast.error('Failed to update note');
+      return false;
+    }
+    toast.success('Note updated');
+    await crud.refetch();
+    return true;
+  }, [user, crud.refetch]);
+
+  return { ...crud, update };
 }
 
 export function useBooksApi() {
-  return useFeatureCrud<ApiBook>(
+  const crud = useFeatureCrud<ApiBook>(
     api.listBooks, api.createBook, api.deleteBook, 'book'
   );
+  const { user } = useAuthContext();
+
+  const update = useCallback(async (id: string, data: { title?: string; author?: string; status?: string; notes?: string; rating?: number }) => {
+    if (!user) return false;
+    const { error } = await api.updateBook(user.id, id, data);
+    if (error) {
+      toast.error('Failed to update book');
+      return false;
+    }
+    toast.success('Book updated');
+    await crud.refetch();
+    return true;
+  }, [user, crud.refetch]);
+
+  return { ...crud, update };
 }
 
 export function usePlannerApi() {
