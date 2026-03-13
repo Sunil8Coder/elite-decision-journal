@@ -9,16 +9,29 @@ import { BiasInsights } from '@/components/BiasInsights';
 import { EmptyState } from '@/components/EmptyState';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-type View = 'list' | 'form' | 'detail';
+type View = 'list' | 'form' | 'detail' | 'edit';
 
 const Index = () => {
-  const { decisions, addDecision, updateDecision, deleteDecision } = useDecisions();
+  const { decisions, addDecision, updateDecision, deleteDecision, refetch } = useDecisions();
   const [view, setView] = useState<View>('list');
   const [selectedDecision, setSelectedDecision] = useState<Decision | null>(null);
 
   const handleAddDecision = (decision: Omit<Decision, 'id' | 'createdAt'>) => {
     addDecision(decision);
     setView('list');
+  };
+
+  const handleEditDecision = (decision: Decision) => {
+    setSelectedDecision(decision);
+    setView('edit');
+  };
+
+  const handleUpdateDecision = async (data: Omit<Decision, 'id' | 'createdAt'>) => {
+    if (!selectedDecision) return;
+    await updateDecision(selectedDecision.id, data);
+    await refetch();
+    setView('list');
+    setSelectedDecision(null);
   };
 
   const handleSelectDecision = (decision: Decision) => {
@@ -62,12 +75,21 @@ const Index = () => {
           />
         )}
 
+        {view === 'edit' && selectedDecision && (
+          <DecisionForm
+            onSubmit={handleUpdateDecision}
+            onCancel={() => { setView('detail'); }}
+            editingDecision={selectedDecision}
+          />
+        )}
+
         {view === 'detail' && selectedDecision && (
           <DecisionDetail
             decision={selectedDecision}
             onBack={handleBack}
             onUpdate={updateDecision}
             onDelete={handleDelete}
+            onEdit={handleEditDecision}
           />
         )}
 

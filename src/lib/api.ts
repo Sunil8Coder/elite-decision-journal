@@ -177,6 +177,18 @@ export const api = {
       { method: 'PATCH', body: JSON.stringify(data) }
     ),
 
+  updateDecision: (userId: string, decisionId: string, data: {
+    decision?: string;
+    reasoning?: string;
+    emotion?: string;
+    category?: string;
+    expectedOutcome?: string;
+  }) =>
+    request<ApiDecision>(
+      `/users/${userId}/decision/${decisionId}`,
+      { method: 'PUT', body: JSON.stringify(data) }
+    ),
+
   deleteDecision: (userId: string, decisionId: string) =>
     request<void>(`/users/${userId}/decision/${decisionId}`, { method: 'DELETE' }),
 
@@ -200,6 +212,9 @@ export const api = {
   createNote: (userId: string, data: { title: string; content: string; tag?: string }) =>
     request<ApiNote>(`/users/${userId}/notes`, { method: 'POST', body: JSON.stringify(data) }),
 
+  updateNote: (userId: string, id: string, data: { title?: string; content?: string; tag?: string }) =>
+    request<ApiNote>(`/users/${userId}/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   deleteNote: (userId: string, id: string) =>
     request<void>(`/users/${userId}/notes/${id}`, { method: 'DELETE' }),
 
@@ -209,6 +224,9 @@ export const api = {
 
   createBook: (userId: string, data: { title: string; author: string; status: string; notes?: string; rating?: number }) =>
     request<ApiBook>(`/users/${userId}/books`, { method: 'POST', body: JSON.stringify(data) }),
+
+  updateBook: (userId: string, id: string, data: { title?: string; author?: string; status?: string; notes?: string; rating?: number }) =>
+    request<ApiBook>(`/users/${userId}/books/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   deleteBook: (userId: string, id: string) =>
     request<void>(`/users/${userId}/books/${id}`, { method: 'DELETE' }),
@@ -220,7 +238,7 @@ export const api = {
   createPlanner: (userId: string, data: { title: string; description?: string; dueDate?: string; priority: string }) =>
     request<ApiPlannerTask>(`/users/${userId}/planner`, { method: 'POST', body: JSON.stringify(data) }),
 
-  updatePlanner: (userId: string, id: string, data: { completed?: boolean }) =>
+  updatePlanner: (userId: string, id: string, data: { title?: string; description?: string; dueDate?: string; priority?: string; completed?: boolean }) =>
     request<ApiPlannerTask>(`/users/${userId}/planner/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   deletePlanner: (userId: string, id: string) =>
