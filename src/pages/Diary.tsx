@@ -10,7 +10,8 @@ import { format } from 'date-fns';
 
 const Diary = () => {
   const { items: entries, loading, create, remove } = useDiaryApi();
-  const [view, setView] = useState<'list' | 'form'>('list');
+  const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
+  const [selectedEntry, setSelectedEntry] = useState<typeof entries[0] | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('');
@@ -46,9 +47,34 @@ const Diary = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <Header onAddDecision={() => setView('form')} showAddButton={view === 'list' && entries.length > 0} />
+      <Header onAddDecision={() => setView('form')} showAddButton={(view === 'list' || view === 'detail') && entries.length > 0} />
       <main className="container max-w-2xl mx-auto px-4 py-6">
-        {view === 'form' ? (
+        {view === 'detail' && selectedEntry ? (
+          <div className="space-y-4 animate-fade-in">
+            <Button variant="ghost" size="sm" onClick={() => { setView('list'); setSelectedEntry(null); }}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back
+            </Button>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold">
+                {selectedEntry.mood && <span className="mr-2">{selectedEntry.mood}</span>}
+                {selectedEntry.title}
+              </h2>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { remove(selectedEntry.id); setView('list'); setSelectedEntry(null); }}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {selectedEntry.date && !isNaN(new Date(selectedEntry.date).getTime())
+                ? format(new Date(selectedEntry.date), 'EEEE, MMMM d, yyyy')
+                : 'Just now'}
+            </p>
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedEntry.content}</p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : view === 'form' ? (
           <div className="space-y-4 animate-fade-in">
             <Button variant="ghost" size="sm" onClick={() => setView('list')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
@@ -84,14 +110,14 @@ const Diary = () => {
         ) : (
           <div className="space-y-3 animate-fade-in">
             {entries.map((entry) => (
-              <Card key={entry.id} className="bg-card border-border">
+              <Card key={entry.id} className="bg-card border-border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setSelectedEntry(entry); setView('detail'); }}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold">
                       {entry.mood && <span className="mr-2">{entry.mood}</span>}
                       {entry.title}
                     </CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(entry.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); remove(entry.id); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
