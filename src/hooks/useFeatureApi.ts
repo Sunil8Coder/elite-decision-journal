@@ -133,5 +133,17 @@ export function usePlannerApi() {
     crud.refetch();
   }, [user, crud.refetch]);
 
-  return { ...crud, toggleComplete };
+  const update = useCallback(async (id: string, data: { title?: string; description?: string; dueDate?: string; priority?: string }) => {
+    if (!user) return false;
+    const { error } = await api.updatePlanner(user.id, id, data);
+    if (error) {
+      toast.error('Failed to update task');
+      return false;
+    }
+    toast.success('Task updated');
+    await crud.refetch();
+    return true;
+  }, [user, crud.refetch]);
+
+  return { ...crud, toggleComplete, update };
 }
