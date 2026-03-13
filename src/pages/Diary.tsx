@@ -10,7 +10,8 @@ import { format } from 'date-fns';
 
 const Diary = () => {
   const { items: entries, loading, create, remove } = useDiaryApi();
-  const [view, setView] = useState<'list' | 'form'>('list');
+  const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
+  const [selectedEntry, setSelectedEntry] = useState<typeof entries[0] | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('');
