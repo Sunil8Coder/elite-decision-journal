@@ -117,7 +117,7 @@ const Diary = () => {
                       {entry.mood && <span className="mr-2">{entry.mood}</span>}
                       {entry.title}
                     </CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(entry.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); remove(entry.id); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
