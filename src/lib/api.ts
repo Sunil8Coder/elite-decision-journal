@@ -188,7 +188,7 @@ export const api = {
     request<ApiDiaryEntry>(`/users/${userId}/diary`, { method: 'POST', body: JSON.stringify(data) }),
 
   updateDiary: (userId: string, id: string, data: { title?: string; content?: string; mood?: string }) =>
-    request<ApiDiaryEntry>(`/users/${userId}/diary/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    request<ApiDiaryEntry>(`/users/${userId}/diary/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
   deleteDiary: (userId: string, id: string) =>
     request<void>(`/users/${userId}/diary/${id}`, { method: 'DELETE' }),
