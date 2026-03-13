@@ -200,6 +200,9 @@ export const api = {
   createNote: (userId: string, data: { title: string; content: string; tag?: string }) =>
     request<ApiNote>(`/users/${userId}/notes`, { method: 'POST', body: JSON.stringify(data) }),
 
+  updateNote: (userId: string, id: string, data: { title?: string; content?: string; tag?: string }) =>
+    request<ApiNote>(`/users/${userId}/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   deleteNote: (userId: string, id: string) =>
     request<void>(`/users/${userId}/notes/${id}`, { method: 'DELETE' }),
 
